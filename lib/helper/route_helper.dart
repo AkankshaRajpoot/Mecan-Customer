@@ -570,16 +570,49 @@ class RouteHelper {
 
   static Widget getRoute(Widget navigateTo, {AccessLocationScreen? locationScreen, bool byPuss = false}) {
     double? minimumVersion = 0;
-    if(GetPlatform.isAndroid) {
-      minimumVersion = Get.find<SplashController>().configModel!.appMinimumVersionAndroid;
-    }else if(GetPlatform.isIOS) {
-      minimumVersion = Get.find<SplashController>().configModel!.appMinimumVersionIos;
-    }
-    return AppConstants.appVersion < minimumVersion! ? const UpdateScreen(isUpdate: true)
-        : Get.find<SplashController>().configModel!.maintenanceMode! ? const UpdateScreen(isUpdate: false)
-        : (Get.find<LocationController>().getUserAddress() == null && !byPuss)
-        ? AccessLocationScreen(fromSignUp: false, fromHome: false, route: Get.currentRoute) : navigateTo;
-  }
 
+    // Fetch controllers and ensure they are initialized
+    final splashController = Get.find<SplashController?>();  // Find SplashController
+    final locationController = Get.find<LocationController?>();  // Find LocationController
+
+    // Null checks for controllers
+    if (splashController == null || locationController == null) {
+      return const UpdateScreen(isUpdate: false); // Fallback screen if controllers are not available
+    }
+
+    // Determine minimum version based on platform
+    if (GetPlatform.isAndroid) {
+      minimumVersion = splashController.configModel?.appMinimumVersionAndroid;
+    } else if (GetPlatform.isIOS) {
+      minimumVersion = splashController.configModel?.appMinimumVersionIos;
+    }
+
+    // Null check for minimumVersion
+    if (minimumVersion == null) {
+      return const UpdateScreen(isUpdate: false); // Fallback if minimumVersion is not set
+    }
+
+    // Check app version
+    if (AppConstants.appVersion < minimumVersion!) {
+      return const UpdateScreen(isUpdate: true);
+    }
+
+    // Check maintenance mode
+    if (splashController.configModel?.maintenanceMode ?? false) {
+      return const UpdateScreen(isUpdate: false);
+    }
+
+    // Debugging: Print user address and byPuss status
+    print('User address: ${locationController.getUserAddress()}');
+    print('ByPuss: $byPuss');
+
+    // Handle location screen logic
+    if (locationController.getUserAddress() == null && !byPuss) {
+      return AccessLocationScreen(fromSignUp: false, fromHome: false, route: Get.currentRoute);
+    }
+
+    // Return the intended route
+    return navigateTo;
+  }
 
 }

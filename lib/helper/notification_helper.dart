@@ -20,107 +20,107 @@ import 'package:sixam_mart/view/screens/notification/widget/notifiation_popup_di
 
 class NotificationHelper {
 
-  static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
-    var androidInitialize = const AndroidInitializationSettings('notification_icon');
-    var iOSInitialize = const DarwinInitializationSettings();
-    var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
-    flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()!.requestPermission();
-    flutterLocalNotificationsPlugin.initialize(initializationsSettings, onDidReceiveNotificationResponse: (NotificationResponse load) async {
-      try{
-        NotificationBody payload;
-        if(load.payload!.isNotEmpty) {
-          payload = NotificationBody.fromJson(jsonDecode(load.payload!));
-          if(payload.notificationType == NotificationType.order) {
-            if(Get.find<AuthController>().isGuestLoggedIn()){
-              Get.to(()=> const DashboardScreen(pageIndex: 3, fromSplash: false));
-            } else {
-              Get.offAllNamed(RouteHelper.getOrderDetailsRoute(int.parse(payload.orderId.toString()), fromNotification: true));
-            }
-          } else if(payload.notificationType == NotificationType.general) {
-            Get.offAllNamed(RouteHelper.getNotificationRoute(fromNotification: true));
-          } else{
-            Get.offAllNamed(RouteHelper.getChatRoute(notificationBody: payload, conversationID: payload.conversationId, fromNotification: true));
-          }
-        }
-      }catch (_) {}
-      return;
-    });
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        print("onMessage: ${message.notification!.title}/${message.notification!.body}/${message.notification!.titleLocKey}");
-        print("onMessage type: ${message.data['type']}/${message.data}");
-      }
-      if(message.data['type'] == 'message' && Get.currentRoute.startsWith(RouteHelper.messages)) {
-        if(Get.find<AuthController>().isLoggedIn()) {
-          Get.find<ChatController>().getConversationList(1);
-          if(Get.find<ChatController>().messageModel!.conversation!.id.toString() == message.data['conversation_id'].toString()) {
-            Get.find<ChatController>().getMessages(
-              1, NotificationBody(
-              notificationType: NotificationType.message, adminId: message.data['sender_type'] == AppConstants.admin ? 0 : null,
-              restaurantId: message.data['sender_type'] == AppConstants.vendor ? 0 : null,
-              deliverymanId: message.data['sender_type'] == AppConstants.deliveryMan ? 0 : null,
-            ),
-              null, int.parse(message.data['conversation_id'].toString()),
-            );
-          }else {
-            NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
-          }
-        }
-      }else if(message.data['type'] == 'message' && Get.currentRoute.startsWith(RouteHelper.conversation)) {
-        if(Get.find<AuthController>().isLoggedIn()) {
-          Get.find<ChatController>().getConversationList(1);
-        }
-        NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
-      }else {
-        NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
-        if(Get.find<AuthController>().isLoggedIn()) {
-          Get.find<OrderController>().getRunningOrders(1);
-          Get.find<OrderController>().getHistoryOrders(1);
-          Get.find<NotificationController>().getNotificationList(true);
-
-        }
-      }
-
-      Map<String, String> payloadData = {
-        'title' : '${message.data['title']}',
-        'body' : '${message.data['body']}',
-        'order_id' : '${message.data['order_id']}',
-        'image' : '${message.data['image']}',
-        'type' : '${message.data['type']}',
-      };
-
-      PayloadModel payload = PayloadModel.fromJson(payloadData);
-
-      if(kIsWeb) {
-        showDialog(
-            context: Get.context!,
-            builder: (context) => Center(
-              child: NotificationPopUpDialog(payload),
-            )
-        );
-      }
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        print("onOpenApp: ${message.notification!.title}/${message.notification!.body}/${message.notification!.titleLocKey}");
-      }
-      try{
-        if(/*message.data != null ||*/ message.data.isNotEmpty) {
-          NotificationBody notificationBody = convertNotification(message.data);
-          if(notificationBody.notificationType == NotificationType.order) {
-            Get.offAllNamed(RouteHelper.getOrderDetailsRoute(int.parse(message.data['order_id']), fromNotification: true));
-          } else if(notificationBody.notificationType == NotificationType.general) {
-            Get.offAllNamed(RouteHelper.getNotificationRoute(fromNotification: true));
-          } else{
-            Get.offAllNamed(RouteHelper.getChatRoute(notificationBody: notificationBody, conversationID: notificationBody.conversationId, fromNotification: true));
-          }
-        }
-      }catch (_) {}
-    });
-  }
+  // static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
+  //   var androidInitialize = const AndroidInitializationSettings('notification_icon');
+  //   var iOSInitialize = const DarwinInitializationSettings();
+  //   var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
+  //   flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+  //       AndroidFlutterLocalNotificationsPlugin>()!.requestPermission();
+  //   flutterLocalNotificationsPlugin.initialize(initializationsSettings, onDidReceiveNotificationResponse: (NotificationResponse load) async {
+  //     try{
+  //       NotificationBody payload;
+  //       if(load.payload!.isNotEmpty) {
+  //         payload = NotificationBody.fromJson(jsonDecode(load.payload!));
+  //         if(payload.notificationType == NotificationType.order) {
+  //           if(Get.find<AuthController>().isGuestLoggedIn()){
+  //             Get.to(()=> const DashboardScreen(pageIndex: 3, fromSplash: false));
+  //           } else {
+  //             Get.offAllNamed(RouteHelper.getOrderDetailsRoute(int.parse(payload.orderId.toString()), fromNotification: true));
+  //           }
+  //         } else if(payload.notificationType == NotificationType.general) {
+  //           Get.offAllNamed(RouteHelper.getNotificationRoute(fromNotification: true));
+  //         } else{
+  //           Get.offAllNamed(RouteHelper.getChatRoute(notificationBody: payload, conversationID: payload.conversationId, fromNotification: true));
+  //         }
+  //       }
+  //     }catch (_) {}
+  //     return;
+  //   });
+  //
+  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //     if (kDebugMode) {
+  //       print("onMessage: ${message.notification!.title}/${message.notification!.body}/${message.notification!.titleLocKey}");
+  //       print("onMessage type: ${message.data['type']}/${message.data}");
+  //     }
+  //     if(message.data['type'] == 'message' && Get.currentRoute.startsWith(RouteHelper.messages)) {
+  //       if(Get.find<AuthController>().isLoggedIn()) {
+  //         Get.find<ChatController>().getConversationList(1);
+  //         if(Get.find<ChatController>().messageModel!.conversation!.id.toString() == message.data['conversation_id'].toString()) {
+  //           Get.find<ChatController>().getMessages(
+  //             1, NotificationBody(
+  //             notificationType: NotificationType.message, adminId: message.data['sender_type'] == AppConstants.admin ? 0 : null,
+  //             restaurantId: message.data['sender_type'] == AppConstants.vendor ? 0 : null,
+  //             deliverymanId: message.data['sender_type'] == AppConstants.deliveryMan ? 0 : null,
+  //           ),
+  //             null, int.parse(message.data['conversation_id'].toString()),
+  //           );
+  //         }else {
+  //           NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
+  //         }
+  //       }
+  //     }else if(message.data['type'] == 'message' && Get.currentRoute.startsWith(RouteHelper.conversation)) {
+  //       if(Get.find<AuthController>().isLoggedIn()) {
+  //         Get.find<ChatController>().getConversationList(1);
+  //       }
+  //       NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
+  //     }else {
+  //       NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
+  //       if(Get.find<AuthController>().isLoggedIn()) {
+  //         Get.find<OrderController>().getRunningOrders(1);
+  //         Get.find<OrderController>().getHistoryOrders(1);
+  //         Get.find<NotificationController>().getNotificationList(true);
+  //
+  //       }
+  //     }
+  //
+  //     Map<String, String> payloadData = {
+  //       'title' : '${message.data['title']}',
+  //       'body' : '${message.data['body']}',
+  //       'order_id' : '${message.data['order_id']}',
+  //       'image' : '${message.data['image']}',
+  //       'type' : '${message.data['type']}',
+  //     };
+  //
+  //     PayloadModel payload = PayloadModel.fromJson(payloadData);
+  //
+  //     if(kIsWeb) {
+  //       showDialog(
+  //           context: Get.context!,
+  //           builder: (context) => Center(
+  //             child: NotificationPopUpDialog(payload),
+  //           )
+  //       );
+  //     }
+  //   });
+  //
+  //   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+  //     if (kDebugMode) {
+  //       print("onOpenApp: ${message.notification!.title}/${message.notification!.body}/${message.notification!.titleLocKey}");
+  //     }
+  //     try{
+  //       if(/*message.data != null ||*/ message.data.isNotEmpty) {
+  //         NotificationBody notificationBody = convertNotification(message.data);
+  //         if(notificationBody.notificationType == NotificationType.order) {
+  //           Get.offAllNamed(RouteHelper.getOrderDetailsRoute(int.parse(message.data['order_id']), fromNotification: true));
+  //         } else if(notificationBody.notificationType == NotificationType.general) {
+  //           Get.offAllNamed(RouteHelper.getNotificationRoute(fromNotification: true));
+  //         } else{
+  //           Get.offAllNamed(RouteHelper.getChatRoute(notificationBody: notificationBody, conversationID: notificationBody.conversationId, fromNotification: true));
+  //         }
+  //       }
+  //     }catch (_) {}
+  //   });
+  // }
 
   static Future<void> showNotification(RemoteMessage message, FlutterLocalNotificationsPlugin fln, bool data) async {
     if(!GetPlatform.isIOS) {
