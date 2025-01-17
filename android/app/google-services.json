@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "41720817871",
+    "project_id": "mecan-db9f9",
+    "storage_bucket": "mecan-db9f9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41720817871:android:4b61584ff3310a1d85afba",
+        "android_client_info": {
+          "package_name": "com.mecan.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3jFdwCunVcEPSugeW_spHy8d5Eh-Yj7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
