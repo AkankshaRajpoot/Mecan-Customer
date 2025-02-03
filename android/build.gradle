@@ -1,17 +1,15 @@
 buildscript {
-    ext.kotlin_version = '1.9.22'
+    ext.kotlin_version = '1.9.24'
     repositories {
         google()
         mavenCentral()
-        jcenter()
         maven { url 'https://jitpack.io' }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"  // Using variable for Kotlin version
-        classpath 'com.google.gms:google-services:4.3.13'
-
+        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 
@@ -21,8 +19,16 @@ allprojects {
         mavenCentral()
     }
 
-    tasks.withType(JavaCompile) {
-        options.compilerArgs << '-Xlint:-options'
+    configurations.all {
+        exclude group: 'com.google.guava', module: 'failureaccess'
+
+        resolutionStrategy {
+            eachDependency { details ->
+                if ('guava' == details.requested.name) {
+                    details.useVersion '27.0-android'
+                }
+            }
+        }
     }
 }
 

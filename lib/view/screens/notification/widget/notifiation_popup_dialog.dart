@@ -26,9 +26,10 @@ class _NewRequestDialogState extends State<NotificationPopUpDialog> {
   }
 
   void _startAlarm() async {
-    AudioCache audio = AudioCache();
-    audio.play('notification.wav');
+    final player = AudioPlayer();
+    await player.play(AssetSource('notification.wav'));
   }
+
 
   @override
   Widget build(BuildContext context) {
